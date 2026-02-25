@@ -32,7 +32,7 @@
 # 4. 모니터링 - Node Exporter (K3s 노드)
 # ===========================================
 - name: Install Node Exporter on K3s Nodes
-  hosts: node_exporter
+  hosts: k3s_cluster        # ✅ 기존 node_exporter → k3s_cluster 로 변경
   become: yes
   tags: [monitoring, node-exporter]
   roles:
@@ -47,6 +47,16 @@
   tags: [monitoring, monitoring-stack]
   roles:
     - monitoring
+
+# ===========================================
+# 5.5 외부 접속 - Nginx Reverse Proxy (모니터링 서버)
+# ===========================================
+- name: Install Nginx Reverse Proxy (Public -> Workers NodePort)
+  hosts: monitoring
+  become: yes
+  tags: [nginx, reverse-proxy]
+  roles:
+    - nginx_proxy
 
 # ===========================================
 # 6. 클러스터 검증 및 테스트

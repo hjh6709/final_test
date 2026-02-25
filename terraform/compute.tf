@@ -11,7 +11,13 @@ resource "aws_security_group" "monitoring_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
+  ingress {
+    description = "HTTP for reverse proxy"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   ingress {
     from_port   = 22 # SSH 접속용            
     to_port     = 22
@@ -133,6 +139,16 @@ resource "aws_security_group_rule" "allow_internal_all" {
   source_security_group_id = aws_security_group.web_sg.id
   description              = "Allow all internal traffic between Master and Workers"
 }
+# NodePort(30080) - Monitoring(Reverse Proxy)에서 Worker로 접근 허용
+resource "aws_security_group_rule" "monitoring_to_nodeport_30080" {
+  type                     = "ingress"
+  from_port                = 30080
+  to_port                  = 30080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.web_sg.id
+  source_security_group_id = aws_security_group.monitoring_sg.id
+  description              = "Allow NodePort 30080 from Monitoring (Nginx reverse proxy)"
+}
 # ==========================================
 # EC2 인스턴스 - Master Node
 # ==========================================
@@ -186,5 +202,4 @@ resource "aws_instance" "monitoring_server" {
     Scheduler   = "Managed by Lambda"
   }
 }
-
 
